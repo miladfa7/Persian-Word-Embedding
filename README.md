@@ -40,4 +40,75 @@ model.get_nearest_neighbors("بورس", k=5)
  (0.6184772253036499, 'اقتصادبورس'),
  (0.6100088357925415, 'بورسهر')]
 ```
+-----------------------
+
+### 2. How to use BERT(ParsBERT) Embedding 
+2.1 How to install huggingface:
+```
+pip install transformers
+```
+2.2 Here is how to load and use a pre-trained vectors:
+
+```
+from transformers import BertTokenizer, BertModel
+
+model_name = 'HooshvareLab/bert-fa-zwnj-base'  # Specify the BERT model variant
+tokenizer = BertTokenizer.from_pretrained(model_name)
+model = BertModel.from_pretrained(model_name)
+
+text = "جز عشق نبود هیچ دم ساز مرا نی اول "
+tokenizer.tokenize(text)
+
+['جز', 'عشق', 'نبود', 'هیچ', 'دم', 'ساز', 'مرا', 'نی', 'اول']
+
+```
+2.3 Here how to get **word embedding** of bert:
+```
+encoded_input = tokenizer.encode_plus(
+    text,
+    add_special_tokens=True,
+    padding='max_length',
+    truncation=True,
+    max_length=150,  # Specify the desired maximum length of the sequence
+    return_tensors='pt' 
+  )
+input_ids = encoded_input['input_ids']
+attention_mask = encoded_input['attention_mask']
+with torch.no_grad():
+  outputs = model(input_ids, attention_mask=attention_mask)
+  words_embedding = outputs.last_hidden_state
+
+words_embedding
+
+tensor([[[ 0.2545, -0.3399,  0.0990,  ...,  0.3291,  0.3309,  1.2594],
+         [ 0.5799, -0.1835, -0.1979,  ...,  0.7980, -0.3029, -0.1636],
+         [ 0.4741, -0.1815, -0.0451,  ...,  1.8211,  0.1717, -0.3972],
+         ...,
+         [-0.3178, -0.9737,  0.5525,  ...,  0.4877,  0.1396,  0.7577],
+         [ 0.1801, -0.8703,  0.2300,  ...,  0.4041,  0.4268,  0.5552],
+         [-0.4429, -0.3841,  0.8476,  ...,  0.3903,  0.8899,  1.8148]]])
+
+words_embedding.size()
+torch.Size([1, 150, 768]) # batch_size, max_len, embedding_dim
+
+```
+2.4 Here how to get **sentence embedding** of bert:
+```
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+sentence_embedding = torch.mean(embeddings, dim=1).to(device)  # Shape: [1, 768]
+sentence_embedding = sentence_embedding.squeeze(0)
+sentence_embedding
+
+tensor([ 8.5537e-02, -7.5624e-01,  1.9884e-01, -7.9048e-01, -1.6724e+00,
+        -1.0927e+00, -3.7952e-01, -5.0552e-01, -6.3537e-01,  1.5239e+00,
+        -8.8235e-01,  4.4737e-01, -5.0677e-01, -9.2339e-01, -8.2049e-01,
+         3.1416e-03, -1.5347e-01, -5.0761e-01, -1.2381e+00,  1.3580e-01,
+       ...
+])
+```
+
+
+
+
 

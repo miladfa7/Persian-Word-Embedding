@@ -3,13 +3,13 @@ Persian Word Embedding using FastText, BERT, GPT and GloVe
 
 ### 1. How to use FastText Embedding 
 1.1 How to install fasttext:
-```
+```python
 pip install fasttext
 pip install huggingface_hub
 ```
 
 1.2 Here is how to load and use a pre-trained vectors:
-```
+```python
 import fasttext
 from huggingface_hub import hf_hub_download
 
@@ -44,12 +44,12 @@ model.get_nearest_neighbors("بورس", k=5)
 
 ### 2. How to use BERT(ParsBERT) Embedding 
 2.1 How to install huggingface:
-```
+```python
 pip install transformers
 ```
 2.2 Here is how to load and use a pre-trained vectors:
 
-```
+```python
 from transformers import BertTokenizer, BertModel
 
 model_name = 'HooshvareLab/bert-fa-zwnj-base'  # Specify the BERT model variant
@@ -63,7 +63,7 @@ tokenizer.tokenize(text)
 
 ```
 2.3 Here how to get **word embedding** of bert:
-```
+```python
 encoded_input = tokenizer.encode_plus(
     text,
     add_special_tokens=True,
@@ -93,7 +93,7 @@ torch.Size([1, 150, 768]) # batch_size, max_len, embedding_dim
 
 ```
 2.4 Here how to get **sentence embedding** of bert:
-```
+```python
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 sentence_embedding = torch.mean(embeddings, dim=1).to(device)  # Shape: [1, 768]
@@ -107,6 +107,40 @@ tensor([ 8.5537e-02, -7.5624e-01,  1.9884e-01, -7.9048e-01, -1.6724e+00,
        ...
 ])
 ```
+### 3. How to use GPT(ParsGPT) Embedding:
+
+```python
+from transformers import AutoTokenizer, AutoModel
+
+# tokenizer = AutoTokenizer.from_pretrained('bolbolzaban/gpt2-persian')
+# model = AutoModel.from_pretrained('bolbolzaban/gpt2-persian')
+
+tokenizer = AutoTokenizer.from_pretrained('HooshvareLab/gpt2-fa')
+model = AutoModel.from_pretrained('HooshvareLab/gpt2-fa')
+
+text = 'ای یوسف خوش نام ما خوش می‌ روی بر بام ما'
+encoded_input = tokenizer(text, return_tensors='pt')
+output = model(**encoded_input)
+
+# Extract the embeddings
+embeddings = output.last_hidden_state
+
+embeddings
+
+tensor([[[ 0.9679, -0.3543, -1.5806,  ..., -0.6302, -1.1486, -0.1004],
+         [-2.0463, -2.9409, -2.5625,  ..., -2.0037,  2.5055, -0.9767],
+         [-0.0377, -4.3028,  1.2818,  ..., -3.4329,  0.9164, -1.9161],
+         ...,
+         [-1.3821, -0.9317,  0.9138,  ...,  0.7705, -0.4418, -0.7426],
+         [ 0.0521, -2.3572,  0.0921,  ..., -2.0423, -0.1339,  1.7548],
+         [-0.8144, -1.0173,  1.5099,  ..., -0.4598, -0.7072,  2.4239]]],
+       grad_fn=<ViewBackward0>)
+
+embeddings.size()
+torch.Size([1, 12, 768])
+
+```
+
 
 
 
